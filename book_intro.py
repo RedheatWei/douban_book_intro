@@ -8,7 +8,7 @@
 from bs4 import BeautifulSoup
 import requests
 import sqlite3
-
+import json
 proxies = None
 
 
@@ -114,6 +114,10 @@ class ProcessDb(object):
         sql = "SELECT url FROM urls WHERE `name` IS NULL"
         return self.cursor.execute(sql).fetchall()
 
+    def selectAll(self):
+        sql = "SELECT * FROM urls WHERE `name` NOT NULL GROUP BY url"
+        return self.cursor.execute(sql).fetchall()
+
     def __del__(self):
         self.cursor.close()
         self.conn.commit()
@@ -156,4 +160,22 @@ class Collect(object):
             db.insertIntro(**intro)
 
 
-Collect.intros()
+# Collect.intros()
+db = ProcessDb("douban.db3")
+all = db.selectAll()
+data_list = []
+for a in all:
+    data = {}
+    data['id'] = a[0]
+    data['url'] = a[1]
+    data['tag'] = a[2]
+    data['auther'] = a[3]
+    data['isbn'] = a[4]
+    data['name'] = a[5]
+    data['o_name'] = a[6]
+    data['intro'] = a[7]
+    data['a_intro'] = a[8]
+    data_list.append(data)
+
+with open("douban.json",'w') as f:
+    json.dump(data_list,f)
